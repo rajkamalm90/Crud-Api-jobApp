@@ -1,0 +1,201 @@
+//add.php
+
+<?php
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $name = $_POST['name'];
+    $phone = $_POST['phone'];
+    $email = $_POST['email'];
+
+    
+$image = $_FILES['image']['name'];
+$image_temp = $_FILES['image']['tmp_name'];
+move_uploaded_file($image_temp, "images/$image");
+
+
+
+    $con = new mysqli("localhost", "root", "", "student");
+
+    if ($con->connect_error) die($con->connect_error);
+    else {
+        $sql = "INSERT INTO student (name, phone, email, image) VALUES ('$name', '$phone', '$email', '$image')";
+
+        $con->query($sql);
+        header("Location: index.php");
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Student</title>
+</head>
+<body>
+    <h1>Add New Student</h1>
+
+    <form method="post" action="" enctype="multipart/form-data">
+        <label>Name:</label>
+        <input type="text" name="name" required><br>
+
+        <label>Phone:</label>
+        <input type="text" name="phone" required><br>
+
+        <label>Email:</label>
+        <input type="text" name="email" required><br>
+
+        <label>Image:</label>
+        <input type="file" name="image"><br>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <a href="index.php">Back to List</a>
+</body>
+</html>
+
+//index.php
+
+<?php
+$con = new mysqli("localhost", "root", "", "student");
+
+if ($con->connect_error) die($con->connect_error);
+else {
+    $sql = "SELECT * FROM student";
+    $res = $con->query($sql);
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CRUD Example</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Student Records</h1>
+
+        <table border="2px" bgcolor="white">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Image</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php 
+                while ($row = $res->fetch_assoc()) { 
+                ?>
+                    <tr>
+                        <td><?php echo $row['name']; ?></td>
+                        <td><?php echo $row['phone']; ?></td>
+                        <td><?php echo $row['email']; ?></td>
+                        <td>
+                            <?php if ($row['image'] != ""): ?>
+                              <img src="<?php echo "images/" . $row['image']; ?>" alt="Student Image" width="50">
+
+                                 
+                            <?php else: ?>
+                                No Image
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <a href="edit.php?id=<?php echo $row['id']; ?>" class='btn btn-sm btn-warning'>Edit</a>
+                            <a href="delete.php?id=<?php echo $row['id']; ?>" class='btn btn-sm btn-danger'>Delete</a>
+                        </td>
+                    </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+
+        <a href="add.php" class='btn btn-primary'>Add New Student</a>
+    </div>
+</body>
+</html>
+
+//Delete.php
+
+<?php
+if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['id'])) {
+    $delete_id = $_GET['id'];
+
+    $con = new mysqli("localhost", "root", "", "student");
+
+    if ($con->connect_error) die($con->connect_error);
+    else {
+        $delete_sql = "DELETE FROM student WHERE id = $delete_id";
+        $con->query($delete_sql);
+        header("Location: index.php");
+    }
+}
+?>
+
+//edit.php
+<?php
+if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['id'])) {
+    $edit_id = $_GET['id'];
+    
+    $con = new mysqli("localhost", "root", "", "student");
+
+    if ($con->connect_error) die($con->connect_error);
+    else {
+        $sql = "SELECT * FROM student WHERE id = $edit_id";
+        $res = $con->query($sql);
+        $row = $res->fetch_assoc();
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['hidden_id'])) {
+    $update_id = $_POST['hidden_id'];
+    $name = $_POST['name'];
+    $phone = $_POST['phone'];
+    $email = $_POST['email'];
+
+    $con = new mysqli("localhost", "root", "", "student");
+
+    if ($con->connect_error) die($con->connect_error);
+    else {
+        $update_sql = "UPDATE student SET name='$name', phone='$phone', email='$email' WHERE id=$update_id";
+        $con->query($update_sql);
+        header("Location: index.php");
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Student</title>
+</head>
+<body>
+    <h1>Edit Student</h1>
+
+    <form method="post" action="">
+        <input type="hidden" name="hidden_id" value="<?php echo $row['id']; ?>">
+        
+        <label>Name:</label>
+        <input type="text" name="name" value="<?php echo $row['name']; ?>" required><br>
+
+        <label>Phone:</label>
+        <input type="text" name="phone" value="<?php echo $row['phone']; ?>" required><br>
+
+        <label>Email:</label>
+        <input type="text" name="email" value="<?php echo $row['email']; ?>" required><br>
+
+        <button type="submit">Update</button>
+    </form>
+
+    <a href="index.php">Back to List</a>
+</body>
+</html>
+
+//create  folder  images
+//thanks ready Data
+
